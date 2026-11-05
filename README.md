@@ -24,7 +24,7 @@ Com N = 1000 o cálculo leva ~6 µs e a versão paralela é **mais lenta** (0,43
 | 1) Código-fonte C++ com OpenMP | [`src/cv_openmp.cpp`](src/cv_openmp.cpp) |
 | 2) Relatório em PDF (o que foi paralelizado e por quê) | [`relatorio/relatorio.pdf`](relatorio/relatorio.pdf) (versão editável: `relatorio/relatorio.docx`) |
 | 3) Resultados: CV da estatura e do peso | tabela acima e [`resultados/saida_1000.txt`](resultados/saida_1000.txt) |
-| 4) Análise de desempenho (sequencial x paralelo) | relatório, Seção 6, [`resultados/benchmark.csv`](resultados/benchmark.csv) e [`resultados/graficos/`](resultados/graficos/) |
+| 4) Análise de desempenho (sequencial x paralelo) | relatório, Seção 4, [`resultados/benchmark.csv`](resultados/benchmark.csv) e [`resultados/graficos/`](resultados/graficos/) |
 
 ## Como rodar do zero
 

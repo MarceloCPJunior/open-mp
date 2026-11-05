@@ -7,6 +7,7 @@ Gera os gráficos do relatório a partir de resultados/benchmark.csv e dos dados
 Saída em resultados/graficos/:
     distribuicoes.png   histogramas das classes de estatura (8 cm) e peso (4 kg)
     speedup.png         speedup e eficiência x nº de threads, para cada N
+    speedup_4threads.png  ganho com 4 threads para cada N (versão simples)
     etapas_1000.png     tempo de cada etapa, sequencial x paralelo, N = 1000
 """
 import csv
@@ -18,6 +19,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.ticker  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from verificar import ler  # noqa: E402
@@ -168,12 +170,44 @@ def etapas(linhas, threads=4):
     plt.close(fig)
 
 
+def speedup_4threads(linhas, threads=4):
+    """Versão simples para o relatório: quantas vezes o paralelo é mais rápido, por N."""
+    sel = sorted((l for l in linhas if l["threads"] == threads), key=lambda l: l["n"])
+    if not sel:
+        return
+    nomes = {1e3: "1 mil", 1e4: "10 mil", 1e5: "100 mil", 1e6: "1 milhão", 1e7: "10 milhões"}
+    rotulos = [nomes.get(l["n"], rotulo_n(l["n"])) for l in sel]
+    valores = [l["speedup"] for l in sel]
+    fig, eixo = plt.subplots(figsize=(7.5, 3.0))
+    barras = eixo.bar(range(len(sel)), valores, width=0.55, color=AZUL)
+    for b, v in zip(barras, valores):
+        eixo.annotate(f"{v:.1f}×".replace(".", ","), xy=(b.get_x() + b.get_width() / 2, v),
+                      xytext=(0, 3), textcoords="offset points", ha="center", fontsize=9,
+                      color=TEXTO)
+    eixo.axhline(1.0, color=TEXTO_2, linewidth=1)
+    eixo.annotate("mesma velocidade (1×)", xy=(-0.42, 1.0), xytext=(0, 3),
+                  textcoords="offset points", ha="left", fontsize=8, color=TEXTO_2)
+    eixo.set_xticks(range(len(sel)))
+    eixo.set_xticklabels(rotulos)
+    eixo.set_xlabel("número de pessoas")
+    eixo.yaxis.set_major_formatter(
+        matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.1f}×".replace(".", ",")))
+    eixo.set_ylabel("vezes mais rápido")
+    eixo.set_ylim(0, max(valores) * 1.2)
+    eixo.set_title(f"Ganho da versão paralela ({threads} threads) sobre a sequencial", loc="left")
+    eixo.grid(axis="x", visible=False)
+    fig.tight_layout()
+    fig.savefig(os.path.join(SAIDA, "speedup_4threads.png"), dpi=200)
+    plt.close(fig)
+
+
 def main():
     os.makedirs(SAIDA, exist_ok=True)
     distribuicoes()
     if os.path.exists(CSV):
         linhas = ler_csv()
         speedup(linhas)
+        speedup_4threads(linhas)
         etapas(linhas)
     else:
         print(f"{CSV} não encontrado: rode 'make benchmark' para gerar os gráficos de desempenho")
