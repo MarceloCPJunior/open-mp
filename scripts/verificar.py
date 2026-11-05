@@ -18,18 +18,27 @@ import sys
 
 
 def ler(caminho):
+    """Mesma regra de leitura do programa C++ (TAB/';' como separador, vírgula decimal)."""
+    with open(caminho, encoding="utf-8", errors="replace") as arq:
+        texto = arq.read()
+    virgula = " " if "." in texto else "."  # sem nenhum ponto no arquivo -> vírgula é decimal
+    texto = texto.replace(";", " ").replace(",", virgula)
+
     estatura, peso = [], []
-    with open(caminho, encoding="utf-8") as arq:
-        for linha in arq:
-            partes = linha.replace(";", " ").split()
-            if len(partes) < 2:
-                continue
-            try:
-                a, w = float(partes[0]), float(partes[1])
-            except ValueError:
-                continue  # cabeçalho
+    for linha in texto.splitlines():
+        partes = linha.split()
+        if len(partes) < 2:
+            continue
+        try:
+            a, w = float(partes[0]), float(partes[1])
+        except ValueError:
+            continue  # cabeçalho
+        if math.isfinite(a) and math.isfinite(w) and a > 0 and w > 0:
             estatura.append(a)
             peso.append(w)
+
+    if not estatura:
+        sys.exit(f"Erro: nenhuma linha valida em '{caminho}'")
     if max(estatura) < 3.0:  # estatura em metros -> cm
         estatura = [a * 100.0 for a in estatura]
     return estatura, peso

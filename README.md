@@ -17,6 +17,11 @@ Com N = 1000 o cálculo leva ~6 µs e a versão paralela é **mais lenta** (0,43
 4 threads), por causa do custo fixo das regiões paralelas. O ganho aparece a partir de
 ~10⁴ pessoas e chega a **≈ 3× com 4 threads** para N ≥ 10⁵. Os detalhes estão no relatório.
 
+Os tempos variam de uma execução para outra, principalmente com N = 1000, em que cada medida
+dura poucos microssegundos. Em testes repetidos, a versão paralela levou de ~13 µs a ~25 µs, e
+foi mais lenta que a sequencial (~6 µs) em todas as execuções. Por isso `resultados/saida_1000.txt`
+pode mostrar um speedup diferente do relatório, que usa `resultados/benchmark.csv`.
+
 ## Entregáveis
 
 | Item pedido | Onde está |

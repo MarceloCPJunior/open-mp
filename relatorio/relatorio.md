@@ -11,7 +11,9 @@ lang: pt-BR
 O programa, escrito em C++ (`src/cv_openmp.cpp`), lê um arquivo com a estatura e o peso de
 1000 pessoas e agrupa os valores em faixas (classes): 8 cm para a estatura e 4 kg para o peso.
 Com essas classes, calcula a média, o desvio padrão e o **coeficiente de variação (CV)** de
-cada variável, usando as fórmulas do enunciado para dados agrupados.
+cada variável, usando as fórmulas do enunciado para dados agrupados. A primeira classe começa
+no menor valor, arredondado para baixo: na estatura, por exemplo, ela vai de 144 a 152 cm. Nos
+cálculos, cada classe é representada pelo seu ponto médio.
 
 O enunciado não trouxe o arquivo de dados. Por isso, usei 1000 pessoas geradas por computador,
 com valores realistas (`dados/pessoas_1000.txt`). O programa aceita qualquer outro arquivo no
@@ -25,18 +27,18 @@ com OpenMP. As duas rodam sobre os mesmos dados.
 
 | Variável | Média | Desvio padrão | Coeficiente de variação |
 |---|--:|--:|--:|
-| Estatura | 170,30 cm | 9,24 cm | **5,43 %** |
-| Peso | 73,06 kg | 13,99 kg | **19,16 %** |
+| Estatura | 170,30 cm | 9,24 cm | **5,43\ %** |
+| Peso | 73,06 kg | 13,99 kg | **19,16\ %** |
 
 ![Quantidade de pessoas em cada classe. A linha vertical marca a média.](../resultados/graficos/distribuicoes.png)
 
 O CV mede o quanto os valores variam em relação à média. Como é dado em porcentagem, ele
 permite comparar variáveis com unidades diferentes, como cm e kg. A **estatura varia pouco
-(5,43 %)**: as pessoas têm alturas parecidas. O **peso varia bem mais (19,16 %)**, cerca de 3,5
+(5,43\ %)**: as pessoas têm alturas parecidas. O **peso varia bem mais (19,16\ %)**, cerca de 3,5
 vezes mais que a estatura. Isso é esperado, porque o peso depende da altura e também do
 tipo físico de cada pessoa.
 
-As versões sequencial e paralela chegaram exatamente aos mesmos valores. Um segundo cálculo,
+As versões sequencial e paralela chegaram aos mesmos valores. Um segundo cálculo,
 feito à parte em Python (`scripts/verificar.py`), confirmou os resultados.
 
 # 3. O que foi paralelizado e por quê
@@ -47,10 +49,10 @@ estatura e 22 de peso.
 
 | Passo | O que faz | Diretiva OpenMP |
 |:-:|:--------------------------|:-----------------------|
-| 1 | encontra o menor e o maior valor, para montar as classes | `parallel for reduction(min, max)` |
+| 1 | encontra o menor e o maior valor, para montar as classes | `parallel for reduction(min:mn) reduction(max:mx)` |
 | 2 | conta quantas pessoas caem em cada classe | `parallel for reduction(+ : f[:k])` |
-| 3 | faz as somas da média | `parallel for reduction(+)` |
-| 4 | faz a soma do desvio padrão | `parallel for reduction(+)` |
+| 3 | faz as somas da média | `parallel for reduction(+ : sxf, sf)` |
+| 4 | faz a soma do desvio padrão | `parallel for reduction(+ : s)` |
 
 A diretiva `parallel for` divide as repetições de um laço entre os núcleos do processador.
 Mas todos os passos acumulam um resultado numa mesma variável: uma soma, um contador, um
@@ -60,14 +62,16 @@ corrida**.
 
 A cláusula **`reduction`** resolve o problema: cada thread faz a sua parte da conta
 separadamente e, no final, o OpenMP junta os resultados parciais. Essa solução é mais rápida
-que bloquear a variável a cada atualização, que é o que fazem `critical` e `atomic`.
+que proteger a variável a cada atualização. Com `critical`, as threads esperam a vez de usar a
+variável. Com `atomic`, todas disputam a mesma posição de memória.
 
-A leitura do arquivo não foi paralelizada. Ela acontece uma única vez e depende do disco.
+A leitura do arquivo não foi paralelizada. Ela acontece uma única vez, antes dos cálculos,
+e o enunciado pede a paralelização dos laços de cálculo.
 
 # 4. Comparação de desempenho
 
-Medi as duas versões num computador com 4 núcleos. Cada uma foi executada milhares de vezes, e
-usei o tempo típico de cada uma (a mediana).
+Medi as duas versões num computador com 4 núcleos. Cada medição foi repetida várias vezes (2000
+vezes no caso das 1000 pessoas), e usei o tempo típico de cada versão (a mediana).
 
 **Com as 1000 pessoas do exercício, a versão paralela foi mais lenta:**
 
@@ -78,7 +82,9 @@ usei o tempo típico de cada uma (a mediana).
 Um µs é um milionésimo de segundo. O cálculo é tão rápido que organizar o trabalho entre as
 threads leva mais tempo que o próprio cálculo. Organizar o trabalho é dividir o laço, esperar
 todas as threads terminarem e juntar os resultados. Isso pesa ainda mais nos passos 3 e 4, que
-têm só de 7 a 22 repetições.
+têm só de 7 a 22 repetições. Como são tempos de microssegundos, eles variam de uma execução para
+outra: em testes repetidos, a versão paralela levou de cerca de 13 µs a 25 µs, mas foi mais lenta
+que a sequencial em todas as execuções.
 
 Para descobrir a partir de quando o paralelismo compensa, rodei o mesmo programa com mais
 pessoas:
@@ -94,17 +100,18 @@ pessoas:
 | 10 milhões | 64 ms | 21 ms | paralela 3,0× mais rápida |
 
 A versão paralela passa a ganhar a partir de cerca de 10 mil pessoas. Com muitos dados, fica
-cerca de **3 vezes mais rápida** com 4 threads. Ela não chega a 4 vezes por dois motivos: ainda
-existe o custo de coordenar as threads, e os núcleos disputam o acesso à memória.
+cerca de **3 vezes mais rápida** com 4 threads. Ela não chega a 4 vezes porque parte do tempo
+continua indo para coordenar as threads, e porque os núcleos dividem recursos da máquina, como
+o acesso à memória.
 
-Há um limite importante. A leitura do arquivo, que não foi paralelizada, ocupa cerca de 97 %
-do tempo total do programa. Por isso, mesmo com o cálculo 3 vezes mais rápido, o tempo total
-do programa quase não muda.
+Há um limite importante. Numa execução normal, que lê o arquivo e faz o cálculo uma vez, a
+leitura ocupa cerca de 97\ % do tempo, e ela não foi paralelizada. Por isso, mesmo com o cálculo
+3 vezes mais rápido, o tempo total do programa quase não muda.
 
 # 5. Conclusão
 
-Os coeficientes de variação foram **5,43 % para a estatura** e **19,16 % para o peso**. As versões
-sequencial e paralela deram resultados idênticos, e o uso de `reduction` evitou as condições
+Os coeficientes de variação foram **5,43\ % para a estatura** e **19,16\ % para o peso**. As versões
+sequencial e paralela deram os mesmos resultados, e o uso de `reduction` evitou as condições
 de corrida.
 
 Para as 1000 pessoas do exercício, o paralelismo não compensa, porque o cálculo é rápido demais

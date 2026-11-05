@@ -243,7 +243,7 @@ static void analisar(const std::vector<double>& dados, double h, bool paralelo,
     else          min_max_seq(x, n, d.minimo, d.maximo);
     double t1 = omp_get_wtime();
 
-    // Montagem das classes: O(k), k ≈ 10 — trabalho desprezível, fica sequencial.
+    // Montagem das classes: O(k), k pequeno (7 e 22 aqui) — trabalho desprezível, fica sequencial.
     montar_classes(d, h);
 
     // Etapa 2 — frequência f_i de cada classe
