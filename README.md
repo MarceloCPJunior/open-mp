@@ -4,6 +4,8 @@ Coeficiente de variação (CV) da **estatura** e do **peso** de 1000 pessoas, co
 agrupados em classes (8 cm e 4 kg), em C++ com OpenMP.
 Disciplina de Programação Paralela, Ciência da Computação (IESB), Prof. Rodrigo Gonçalves Pinto.
 
+**Aluno:** Marcelo de Castro Pereira Junior · **Matrícula:** 2222130019
+
 ## Resultado
 
 | Variável | Média (μ) | Desvio padrão (σ) | CV |

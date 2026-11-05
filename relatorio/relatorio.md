@@ -1,7 +1,7 @@
 ---
 title: "Exercício Final — Análise de Dados com OpenMP"
 subtitle: "Coeficiente de variação da estatura e do peso com dados agrupados em classes"
-author: "Aluno(a): ____________________________   ·   Matrícula: ______________"
+author: "Aluno: Marcelo de Castro Pereira Junior   ·   Matrícula: 2222130019"
 date: "Ciência da Computação — IESB · Programação Paralela · Prof. Rodrigo Gonçalves Pinto · Novembro de 2026"
 lang: pt-BR
 ---
