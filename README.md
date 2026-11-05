@@ -27,9 +27,9 @@ pode mostrar um speedup diferente do relatório, que usa `resultados/benchmark.c
 | Item pedido | Onde está |
 |---|---|
 | 1) Código-fonte C++ com OpenMP | [`src/cv_openmp.cpp`](src/cv_openmp.cpp) |
-| 2) Relatório em PDF (o que foi paralelizado e por quê) | [`relatorio/relatorio.pdf`](relatorio/relatorio.pdf) (versão editável: `relatorio/relatorio.docx`) |
+| 2) Relatório em PDF (o que foi paralelizado e por quê) | `Relatorio_Exercicio_Final_OpenMP.pdf`, entregue junto com esta pasta |
 | 3) Resultados: CV da estatura e do peso | tabela acima e [`resultados/saida_1000.txt`](resultados/saida_1000.txt) |
-| 4) Análise de desempenho (sequencial x paralelo) | relatório, Seção 4, [`resultados/benchmark.csv`](resultados/benchmark.csv) e [`resultados/graficos/`](resultados/graficos/) |
+| 4) Análise de desempenho (sequencial x paralelo) | relatório (Seção 4), [`resultados/benchmark.csv`](resultados/benchmark.csv) e [`resultados/graficos/`](resultados/graficos/) |
 
 ## Como rodar do zero
 
@@ -63,9 +63,8 @@ O enunciado não trouxe o arquivo, então `dados/pessoas_1000.txt` é **sintéti
 semente fixa por `python3 scripts/gerar_dados.py 1000 dados/pessoas_1000.txt 2025`. Se o
 professor fornecer um arquivo, é só passá-lo como argumento (`./cv_openmp arquivo.txt`).
 Linhas de cabeçalho são ignoradas, TAB/`;` e vírgula decimal são aceitos, e estatura em metros
-é convertida para cm. Com dados novos, rode de novo `make run`, `make benchmark` e
-`make graficos`, e atualize os números do relatório (`relatorio/relatorio.md`; o PDF é
-gerado por `relatorio/gerar_relatorio.sh`).
+é convertida para cm. Com dados novos, `make run`, `make benchmark` e `make graficos` refazem
+as medições e os gráficos.
 
 ## Estrutura
 
@@ -78,7 +77,6 @@ scripts/verificar.py       conferência independente do resultado (Python puro)
 scripts/benchmark.sh       mede sequencial x paralelo e grava CSV
 scripts/graficos.py        gráficos a partir do CSV
 resultados/                saída do programa, CSV de medições e gráficos
-relatorio/                 relatorio.md (fonte), relatorio.pdf, relatorio.docx
 ```
 
 ## O que foi paralelizado (resumo)
@@ -114,26 +112,3 @@ execuções, a versão sem proteção perdeu de 60 % a 73 % das contagens, `crit
 143× mais lento, `atomic` de 11× a 16× mais lento, e `reduction` de 2,5× a 3,9× mais rápido.
 Mesmo com só 1000 valores (`./comparar_protecoes dados/pessoas_1000.txt 1000`), a versão sem
 proteção perde cerca de metade das contagens.
-
-Para a apresentação, `make protecoes` mostra ao vivo a condição de corrida e por que
-`reduction` é a escolha certa.
-
-## Para a apresentação: perguntas prováveis
-
-- **Por que `reduction` e não `critical`/`atomic`?** `critical` serializa cada iteração e
-  `atomic` faz todas as threads disputarem a mesma posição de memória. Com `reduction`, cada
-  thread acumula numa cópia privada e as cópias são combinadas uma vez só, no fim. No teste
-  acima, `critical` ficou ~124× e `atomic` ~14× mais lentos que o sequencial.
-- **Onde estaria a condição de corrida?** No `soma +=` e no `f[c]++` do histograma: duas
-  threads leem o valor antigo, as duas somam 1, e uma das atualizações se perde. No teste
-  acima, a contagem sem proteção perdeu cerca de 60 % dos valores.
-- **Por que o paralelo perde com 1000 pessoas?** Cada região paralela custa ~1–2 µs (acordar
-  as threads, barreira, combinação da redução), e o cálculo inteiro leva ~6 µs. Nos laços
-  sobre as classes (k = 7 e 22 iterações) o custo fixo é dezenas de vezes maior que o trabalho.
-- **Por que não chega a 4× com 4 threads?** Custo de sincronização e redução, banda de memória
-  (com N = 10⁷ os vetores têm 80 MB, mais que a cache L3) e vCPUs virtualizadas.
-- **Por que 8 threads piora?** A máquina tem 4 núcleos (sobreassinatura): as threads revezam
-  a CPU e cada barreira espera por uma thread que está fora do processador.
-- **Por que as somas paralelas podem diferir na última casa?** A soma em ponto flutuante não
-  é associativa, e a ordem muda com as threads. Por isso a validação usa tolerância de 10⁻⁹
-  nas somas, mas exige frequências idênticas.

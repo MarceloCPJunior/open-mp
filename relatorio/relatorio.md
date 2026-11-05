@@ -65,6 +65,11 @@ separadamente e, no final, o OpenMP junta os resultados parciais. Essa solução
 que proteger a variável a cada atualização. Com `critical`, as threads esperam a vez de usar a
 variável. Com `atomic`, todas disputam a mesma posição de memória.
 
+Um teste à parte confirmou isso (`src/comparar_protecoes.cpp`). Contando 10 milhões de pesos
+com 4 threads, a versão sem proteção perdeu cerca de 60\ % das contagens. Com `critical` e
+`atomic` o resultado ficou certo, mas 124 e 14 vezes mais lento que a versão sequencial. Com
+`reduction`, ficou certo e 3,4 vezes mais rápido.
+
 A leitura do arquivo não foi paralelizada. Ela acontece uma única vez, antes dos cálculos,
 e o enunciado pede a paralelização dos laços de cálculo.
 
