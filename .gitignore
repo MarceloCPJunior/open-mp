@@ -1,0 +1,9 @@
+# executáveis
+cv_openmp
+cv_openmp.exe
+*.o
+# arquivos grandes gerados só para o benchmark (recriados por scripts/benchmark.sh)
+dados/gerados/
+# temporários
+relatorio/relatorio.html
+__pycache__/
