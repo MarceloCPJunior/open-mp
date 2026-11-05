@@ -1,6 +1,8 @@
 # executáveis
 cv_openmp
 cv_openmp.exe
+comparar_protecoes
+comparar_protecoes.exe
 *.o
 # arquivos grandes gerados só para o benchmark (recriados por scripts/benchmark.sh)
 dados/gerados/

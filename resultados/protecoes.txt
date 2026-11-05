@@ -1,0 +1,9 @@
+Contagem por classe de peso (h = 4 kg, k = 22 classes)
+N = 10000000 valores, 4 threads, mediana de 3 repeticoes
+
+  Versao         Tempo (ms)      vs sequencial    Contagens   Resultado
+  sequencial         17.212                  -     10000000   correto
+  sem protecao       71.314    4.1x mais lento      4002619   ERRADO (perdeu 60.0% das contagens)
+  critical         2140.437  124.4x mais lento     10000000   correto
+  atomic            248.597   14.4x mais lento     10000000   correto
+  reduction           5.006   3.4x mais rapido     10000000   correto
